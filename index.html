@@ -3,246 +3,394 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vibe Player Premium</title>
+    <title>VIBE Premium</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --glass: rgba(255, 255, 255, 0.1);
-            --glass-border: rgba(255, 255, 255, 0.2);
-            --accent: #00d2ff;
-            --accent-gradient: linear-gradient(45deg, #00d2ff, #3a7bd5);
-            --text: #ffffff;
-            --bg-gradient: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            --bg-dark: #0a0a0c;
+            --bg-card: rgba(255, 255, 255, 0.06);
+            --accent: #00f2ff;
+            --accent-glow: rgba(0, 242, 255, 0.5);
+            --text-main: #ffffff;
+            --text-dim: #a0a0a0;
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         body {
-            background: var(--bg-gradient);
-            background-attachment: fixed;
-            color: var(--text);
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            padding: 0;
             height: 100vh;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
-        /* Стеклянная карточка */
-        .glass-card {
-            background: var(--glass);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid var(--glass-border);
-            border-radius: 30px;
-            width: 90%;
-            max-width: 400px;
-            padding: 30px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
-            text-align: center;
-            transition: all 0.5s ease;
-            position: absolute;
-            opacity: 0;
-            transform: translateY(20px);
-            pointer-events: none;
-        }
-
-        .glass-card.active {
-            opacity: 1;
-            transform: translateY(0);
-            pointer-events: all;
-        }
-
-        h1, h2 { font-weight: 600; margin-bottom: 10px; }
-        p { opacity: 0.8; font-size: 14px; line-height: 1.5; }
-
-        /* Поля ввода */
-        .input-group {
-            margin: 20px 0;
-            text-align: left;
-        }
-        input {
+        /* --- НАВИГАЦИЯ (TAB BAR) --- */
+        .tab-bar {
+            position: fixed;
+            bottom: 0;
             width: 100%;
-            padding: 12px 15px;
-            margin-top: 8px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            color: white;
-            font-size: 16px;
-            box-sizing: border-box;
-            outline: none;
-            transition: border 0.3s;
+            height: 70px;
+            background: rgba(10, 10, 12, 0.8);
+            backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid var(--glass-border);
+            z-index: 100;
+            padding-bottom: env(safe-area-inset-bottom);
         }
-        input:focus { border-color: var(--accent); }
 
-        /* Кнопки */
-        .btn {
-            background: var(--accent-gradient);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 15px;
-            font-size: 16px;
-            font-weight: bold;
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-dim);
             cursor: pointer;
-            width: 100%;
-            transition: transform 0.2s, box-shadow 0.2s;
-            margin-top: 10px;
+            transition: var(--transition);
+            width: 25%;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        .btn:active { transform: scale(0.98); }
 
-        /* Соглашение */
-        .agreement-box {
-            background: rgba(0, 0, 0, 0.2);
-            padding: 15px;
-            border-radius: 15px;
-            height: 150px;
-            overflow-y: auto;
-            text-align: left;
-            font-size: 12px;
-            margin-bottom: 20px;
-            border: 1px solid var(--glass-border);
+        .tab-item.active {
+            color: var(--accent);
+            text-shadow: 0 0 10px var(--accent-glow);
         }
-        .checkbox-group {
+
+        .tab-item svg {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 4px;
+            fill: currentColor;
+        }
+
+        /* --- КОНТЕНТ --- */
+        .app-container {
+            flex: 1;
+            position: relative;
+            padding: 20px;
+            padding-bottom: 90px;
+            overflow-y: auto;
+        }
+
+        .screen {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .screen.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 { font-size: 28px; font-weight: 700; margin-bottom: 20px; letter-spacing: -0.5px; }
+
+        /* --- КАРТОЧКИ И СЕТКА --- */
+        .section-title {
+            font-size: 18px;
+            color: var(--text-dim);
+            margin: 25px 0 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 15px;
+            text-align: center;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .card:active { transform: scale(0.95); background: rgba(255,255,255,0.1); }
+
+        .card img {
+            width: 100%;
+            aspect-ratio: 1/1;
+            border-radius: 15px;
+            object-fit: cover;
+            margin-bottom: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .card .title { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .card .subtitle { font-size: 12px; color: var(--text-dim); }
+
+        /* --- ЭКРАН ПЛЕЕРА (FULLSCREEN) --- */
+        #player-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-dark);
+            z-index: 200;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 0;
+            box-sizing: border-box;
+        }
+
+        #player-screen.active { display: flex; }
+
+        .player-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://images.unsplash.com/photo-1614613535308-eb5fbd33267c?q=80&w=1000') center/cover;
+            filter: blur(50px) brightness(0.4);
+            z-index: -1;
+            transform: scale(1.1);
+        }
+
+        .player-cover {
+            width: 280px;
+            height: 280px;
+            border-radius: 30px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            margin-bottom: 40px;
+            animation: pulse 2s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+
+        .player-info { text-align: center; margin-bottom: 40px; }
+        .player-info h2 { font-size: 24px; margin: 0; }
+        .player-info p { color: var(--text-dim); margin: 5px 0 0; }
+
+        .progress-container {
+            width: 80%;
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-bottom: 20px;
-            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 4px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+            position: relative;
             cursor: pointer;
         }
 
-        /* Плеер */
-        .cover {
-            width: 180px;
-            height: 180px;
-            background: var(--accent-gradient);
-            border-radius: 20px;
-            margin: 0 auto 20px;
-            box-shadow: 0 10px 30px rgba(0, 210, 255, 0.3);
+        .progress-fill {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 30%;
+            background: var(--accent);
+            box-shadow: 0 0 10px var(--accent-glow);
+            border-radius: 2px;
         }
-        .controls {
+
+        .time { font-size: 11px; color: var(--text-dim); min-width: 35px; }
+
+        .player-controls {
             display: flex;
             justify-content: center;
-            gap: 20px;
             align-items: center;
+            gap: 30px;
         }
+
         .ctrl-btn {
-            background: var(--glass);
-            border: 1px solid var(--glass-border);
+            background: none;
+            border: none;
             color: white;
-            width: 50px;
-            height: 50px;
+            cursor: pointer;
+            transition: var(--transition);
+            fill: white;
+        }
+        .ctrl-btn:active { transform: scale(0.9); opacity: 0.7; }
+        .play-btn {
+            width: 70px;
+            height: 70px;
+            background: var(--text-main);
             border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--bg-dark);
+            box-shadow: 0 0 20px rgba(255,255,255,0.2);
+        }
+
+        .close-player {
+            position: absolute;
+            top: 40px;
+            left: 20px;
+            background: none;
+            border: none;
+            color: white;
             cursor: pointer;
             font-size: 20px;
         }
-        .play-btn { width: 70px; height: 70px; font-size: 25px; background: var(--accent-gradient); border: none; }
     </style>
 </head>
 <body>
 
-    <!-- ЭКРАН 1: ПРИВЕТСТВИЕ -->
-    <div id="screen-welcome" class="glass-card active">
-        <h1>Vibe Player 🎵</h1>
-        <p>Погрузись в мир идеального звука. Создай свой аккаунт, чтобы начать путешествие.</p>
-        <button class="btn" onclick="goTo('screen-reg')">Начать сейчас</button>
+    <div class="app-container">
+        <!-- ГЛАВНАЯ -->
+        <div id="screen-home" class="screen active">
+            <h1>Для вас</h1>
+            <div class="section-title">Популярное <span>Все</span></div>
+            <div class="grid">
+                <div class="card" onclick="openPlayer('Cyberpunk 2077', 'Night City', 'https://images.unsplash.com/photo-1614613535308-eb5fbd33267c?w=300')">
+                    <img src="https://images.unsplash.com/photo-1614613535308-eb5fbd33267c?w=300">
+                    <div class="title">Night City Drift</div>
+                    <div class="subtitle">Synthwave</div>
+                </div>
+                <div class="card" onclick="openPlayer('Deep Ocean', 'Ambient Flow', 'https://images.unsplash.com/photo-1459749411177-0436759187ed?w=300')">
+                    <img src="https://images.unsplash.com/photo-1459749411177-0436759187ed?w=300">
+                    <div class="title">Deep Ocean</div>
+                    <div class="subtitle">Ambient</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ПОИСК -->
+        <div id="screen-search" class="screen">
+            <h1>Поиск</h1>
+            <input type="text" placeholder="Артисты, треки, альбомы..." style="width: 100%; padding: 15px; background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 15px; color: white; box-sizing: border-box; outline: none;">
+            <div class="section-title">Жанры</div>
+            <div class="grid">
+                <div class="card"> <div class="title">Phonk</div> </div>
+                <div class="card"> <div class="title">Lo-Fi</div> </div>
+                <div class="card"> <div class="title">Techno</div> </div>
+                <div class="card"> <div class="title">Jazz</div> </div>
+            </div>
+        </div>
+
+        <!-- БИБЛИОТЕКА -->
+        <div id="screen-lib" class="screen">
+            <h1>Моя музыка</h1>
+            <div class="section-title">Любимые артисты</div>
+            <div class="grid" id="fav-artists">
+                <div class="card"> <div class="title">Нет избранного</div> </div>
+            </div>
+        </div>
+
+        <!-- ПРОФИЛЬ -->
+        <div id="screen-profile" class="screen">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <div style="width: 100px; height: 100px; background: var(--accent-gradient); border-radius: 50%; margin: 0 auto 15px; box-shadow: 0 0 20px var(--accent-glow);"></div>
+                <h2>Пользователь</h2>
+                <p>Premium Account</p>
+            </div>
+            <div class="card" style="text-align: left; margin-bottom: 10px;"> Настройки звука </div>
+            <div class="card" style="text-align: left; margin-bottom: 10px;"> Конфиденциальность </div>
+            <div class="card" style="text-align: left; color: #ff4b4b;"> Выйти из аккаунта </div>
+        </div>
     </div>
 
-    <!-- ЭКРАН 2: РЕГИСТРАЦИЯ -->
-    <div id="screen-reg" class="glass-card">
-        <h2>Регистрация</h2>
-        <div class="input-group">
-            <label>Ваше имя</label>
-            <input type="text" id="reg-name" placeholder="Введите имя...">
+    <!-- ПОЛНОЭКРАННЫЙ ПЛЕЕР -->
+    <div id="player-screen">
+        <div class="player-bg" id="player-bg"></div>
+        <button class="close-player" onclick="closePlayer()">✕</button>
+        <img src="" class="player-cover" id="p-cover">
+        <div class="player-info">
+            <h2 id="p-title">Song Name</h2>
+            <p id="p-artist">Artist Name</p>
         </div>
-        <div class="input-group">
-            <label>Email</label>
-            <input type="email" id="reg-email" placeholder="example@mail.com">
+        <div class="progress-container">
+            <div class="time">1:20</div>
+            <div class="progress-bar"><div class="progress-fill"></div></div>
+            <div class="time">3:45</div>
         </div>
-        <div class="input-group">
-            <label>Пароль</label>
-            <input type="password" id="reg-pass" placeholder="••••••••">
+        <div class="player-controls">
+            <button class="ctrl-btn">
+                <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+            </button>
+            <button class="ctrl-btn play-btn" id="mainPlayBtn">
+                <svg viewBox="0 0 24 24" width="30" height="30" id="playIcon"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+            <button class="ctrl-btn">
+                <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6h2v12h-2z"/></svg>
+            </button>
         </div>
-        <button class="btn" onclick="goTo('screen-agree')">Далее</button>
+        <audio id="main-audio"></audio>
     </div>
 
-    <!-- ЭКРАН 3: СОГЛАШЕНИЕ -->
-    <div id="screen-agree" class="glass-card">
-        <h2>Соглашение</h2>
-        <div class="agreement-box">
-            Здесь находится ваш текст пользовательского соглашения. <br><br>
-            1. Вы обязуетесь использовать плеер только для прослушивания музыки.<br>
-            2. Мы не храним ваши данные вне зашифрованной базы.<br>
-            3. Вы соглашаетесь с тем, что вайб — это главное.<br><br>
-            Принимая это соглашение, вы подтверждаете, что ознакомлены со всеми правилами сервиса Vibe Player.
+    <!-- TAB BAR -->
+    <div class="tab-bar">
+        <div class="tab-item active" onclick="switchTab('screen-home', this)">
+            <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            <span>Главная</span>
         </div>
-        <label class="checkbox-group">
-            <input type="checkbox" id="agree-check"> Я согласен с условиями
-        </label>
-        <button class="btn" onclick="checkAndGo()">Завершить</button>
-    </div>
-
-    <!-- ЭКРАН 4: ПЛЕЕР -->
-    <div id="screen-player" class="glass-card">
-        <div class="cover"></div>
-        <h2 id="song-title">Загрузка...</h2>
-        <p id="song-artist">Твой вайб</p>
-        <div class="controls">
-            <button class="ctrl-btn" onclick="prev()">⏮</button>
-            <button class="ctrl-btn play-btn" id="playBtn" onclick="togglePlay()">▶️</button>
-            <button class="ctrl-btn" onclick="next()">⏭</button>
+        <div class="tab-item" onclick="switchTab('screen-search', this)">
+            <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 // shortened for brevity... 9.5 3 6.41 5.91 3.5 9.5 3.5 13.09 6.41 16 9.5 16 12.59 15.71 13.73l.27.27v.79l5.48-5.47z"/></svg>
+            <span>Поиск</span>
         </div>
-        <audio id="audio"></audio>
+        <div class="tab-item" onclick="switchTab('screen-lib', this)">
+            <svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+            <span>Библиотека</span>
+        </div>
+        <div class="tab-item" onclick="switchTab('screen-profile', this)">
+            <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            <span>Профиль</span>
+        </div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        function goTo(screenId) {
-            // Скрываем все карточки
-            document.querySelectorAll('.glass-card').forEach(card => {
-                card.classList.remove('active');
-            });
-            // Показываем нужную
+        function switchTab(screenId, el) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
+            document.querySelectorAll('.tab-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
         }
 
-        function checkAndGo() {
-            if (document.getElementById('agree-check').checked) {
-                goTo('screen-player');
-                loadSong();
-            } else {
-                tg.showAlert("Пожалуйста, примите соглашение!");
-            }
+        function openPlayer(title, artist, cover) {
+            document.getElementById('p-title').innerText = title;
+            document.getElementById('p-artist').innerText = artist;
+            document.getElementById('p-cover').src = cover;
+            document.getElementById('player-bg').style.backgroundImage = `url(${cover})`;
+            document.getElementById('player-screen').classList.add('active');
         }
 
-        // ЛОГИКА ПЛЕЕРА
-        const songs = [
-            { name: "Vibe Track 1", artist: "Artist 1", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" },
-            { name: "Vibe Track 2", artist: "Artist 2", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" },
-            { name: "Vibe Track 3", artist: "Artist 3", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" }
-        ];
-
-        let current = 0;
-        const audio = document.getElementById('audio');
-        const playBtn = document.getElementById('playBtn');
-
-        function loadSong() {
-            document.getElementById('song-title').innerText = songs[current].name;
-            document.getElementById('song-artist').innerText = songs[current].artist;
-            audio.src = songs[current].url;
+        function closePlayer() {
+            document.getElementById('player-screen').classList.remove('active');
+            document.getElementById('main-audio').pause();
         }
 
-        function togglePlay() {
-            if (audio.paused) { audio.play(); playBtn.innerText = "⏸"; } 
-            else { audio.pause(); playBtn.innerText = "▶️"; }
-        }
+        // Простой переключатель Play/Pause для красоты
+        const playBtn = document.getElementById('mainPlayBtn');
+        const playIcon = document.getElementById('playIcon');
+        let isPlaying = false;
 
-        function next() { current = (current + 1) % songs.length; loadSong(); audio.play(); playBtn.innerText = "⏸"; }
-        function prev() { current = (current - 1 + songs.length) % songs.length; loadSong(); audio.play(); playBtn.innerText = "⏸"; }
+        playBtn.onclick = () => {
+            isPlaying = !isPlaying;
+            playIcon.innerHTML = isPlaying 
+                ? '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>' 
+                : '<path d="M8 5v14l11-7z"/>';
+        };
     </script>
 </body>
 </html>
