@@ -2,88 +2,224 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vibe Player</title>
-    <!-- Подключаем API Телеграма для работы Web App -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Vibe Player Premium</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { 
-            background-color: var(--tg-theme-bg-color, #1c1c1c); 
-            color: var(--tg-theme-text-color, #ffffff); 
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            height: 100vh; 
-            margin: 0; 
+        :root {
+            --glass: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --accent: #00d2ff;
+            --accent-gradient: linear-gradient(45deg, #00d2ff, #3a7bd5);
+            --text: #ffffff;
+            --bg-gradient: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+        }
+
+        body {
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            color: var(--text);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
             overflow: hidden;
         }
-        .player-card { 
-            text-align: center; 
-            width: 90%; 
-            max-width: 350px; 
-            padding: 20px;
+
+        /* Стеклянная карточка */
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
             border-radius: 30px;
+            width: 90%;
+            max-width: 400px;
+            padding: 30px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+            text-align: center;
+            transition: all 0.5s ease;
+            position: absolute;
+            opacity: 0;
+            transform: translateY(20px);
+            pointer-events: none;
+        }
+
+        .glass-card.active {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: all;
+        }
+
+        h1, h2 { font-weight: 600; margin-bottom: 10px; }
+        p { opacity: 0.8; font-size: 14px; line-height: 1.5; }
+
+        /* Поля ввода */
+        .input-group {
+            margin: 20px 0;
+            text-align: left;
+        }
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            margin-top: 8px;
             background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            box-sizing: border-box;
+            outline: none;
+            transition: border 0.3s;
         }
-        .cover { 
-            width: 220px; 
-            height: 220px; 
-            background: linear-gradient(45deg, #ff00cc, #3333ff); 
-            border-radius: 20px; 
-            margin: 0 auto 20px; 
-            box-shadow: 0 15px 35px rgba(0,0,0,0.5); 
-            transition: transform 0.3s ease;
+        input:focus { border-color: var(--accent); }
+
+        /* Кнопки */
+        .btn {
+            background: var(--accent-gradient);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
         }
-        .playing .cover { transform: scale(1.05); }
-        h2 { margin: 10px 0 5px; font-size: 22px; }
-        p { opacity: 0.6; margin-bottom: 30px; }
-        .controls { 
-            display: flex; 
-            justify-content: center; 
-            gap: 25px; 
-            align-items: center; 
+        .btn:active { transform: scale(0.98); }
+
+        /* Соглашение */
+        .agreement-box {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 15px;
+            height: 150px;
+            overflow-y: auto;
+            text-align: left;
+            font-size: 12px;
+            margin-bottom: 20px;
+            border: 1px solid var(--glass-border);
         }
-        button { 
-            background: var(--tg-theme-button-color, #2481cc); 
-            color: var(--tg-theme-button-text-color, #ffffff); 
-            border: none; 
-            width: 60px;
-            height: 60px;
-            border-radius: 50%; 
-            cursor: pointer; 
-            font-size: 24px; 
+        .checkbox-group {
             display: flex;
             align-items: center;
-            justify-content: center;
-            transition: opacity 0.2s;
+            gap: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            cursor: pointer;
         }
-        button:active { opacity: 0.7; }
-        #playBtn { width: 80px; height: 80px; font-size: 30px; }
+
+        /* Плеер */
+        .cover {
+            width: 180px;
+            height: 180px;
+            background: var(--accent-gradient);
+            border-radius: 20px;
+            margin: 0 auto 20px;
+            box-shadow: 0 10px 30px rgba(0, 210, 255, 0.3);
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            align-items: center;
+        }
+        .ctrl-btn {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+        }
+        .play-btn { width: 70px; height: 70px; font-size: 25px; background: var(--accent-gradient); border: none; }
     </style>
 </head>
-<body id="body">
+<body>
 
-    <div class="player-card" id="card">
+    <!-- ЭКРАН 1: ПРИВЕТСТВИЕ -->
+    <div id="screen-welcome" class="glass-card active">
+        <h1>Vibe Player 🎵</h1>
+        <p>Погрузись в мир идеального звука. Создай свой аккаунт, чтобы начать путешествие.</p>
+        <button class="btn" onclick="goTo('screen-reg')">Начать сейчас</button>
+    </div>
+
+    <!-- ЭКРАН 2: РЕГИСТРАЦИЯ -->
+    <div id="screen-reg" class="glass-card">
+        <h2>Регистрация</h2>
+        <div class="input-group">
+            <label>Ваше имя</label>
+            <input type="text" id="reg-name" placeholder="Введите имя...">
+        </div>
+        <div class="input-group">
+            <label>Email</label>
+            <input type="email" id="reg-email" placeholder="example@mail.com">
+        </div>
+        <div class="input-group">
+            <label>Пароль</label>
+            <input type="password" id="reg-pass" placeholder="••••••••">
+        </div>
+        <button class="btn" onclick="goTo('screen-agree')">Далее</button>
+    </div>
+
+    <!-- ЭКРАН 3: СОГЛАШЕНИЕ -->
+    <div id="screen-agree" class="glass-card">
+        <h2>Соглашение</h2>
+        <div class="agreement-box">
+            Здесь находится ваш текст пользовательского соглашения. <br><br>
+            1. Вы обязуетесь использовать плеер только для прослушивания музыки.<br>
+            2. Мы не храним ваши данные вне зашифрованной базы.<br>
+            3. Вы соглашаетесь с тем, что вайб — это главное.<br><br>
+            Принимая это соглашение, вы подтверждаете, что ознакомлены со всеми правилами сервиса Vibe Player.
+        </div>
+        <label class="checkbox-group">
+            <input type="checkbox" id="agree-check"> Я согласен с условиями
+        </label>
+        <button class="btn" onclick="checkAndGo()">Завершить</button>
+    </div>
+
+    <!-- ЭКРАН 4: ПЛЕЕР -->
+    <div id="screen-player" class="glass-card">
         <div class="cover"></div>
-        <h2 id="title">Загрузка...</h2>
-        <p id="artist">Твой вайб</p>
+        <h2 id="song-title">Загрузка...</h2>
+        <p id="song-artist">Твой вайб</p>
         <div class="controls">
-            <button onclick="prev()">⏮</button>
-            <button id="playBtn" onclick="togglePlay()">▶️</button>
-            <button onclick="next()">⏭</button>
+            <button class="ctrl-btn" onclick="prev()">⏮</button>
+            <button class="ctrl-btn play-btn" id="playBtn" onclick="togglePlay()">▶️</button>
+            <button class="ctrl-btn" onclick="next()">⏭</button>
         </div>
         <audio id="audio"></audio>
     </div>
 
     <script>
-        // Инициализация Telegram WebApp
         const tg = window.Telegram.WebApp;
-        tg.expand(); // Растягиваем приложение на весь экран
+        tg.expand();
 
-        // СПИСОК ТРЕКОВ (Сюда будешь добавлять свои ссылки в будущем)
+        function goTo(screenId) {
+            // Скрываем все карточки
+            document.querySelectorAll('.glass-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            // Показываем нужную
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function checkAndGo() {
+            if (document.getElementById('agree-check').checked) {
+                goTo('screen-player');
+                loadSong();
+            } else {
+                tg.showAlert("Пожалуйста, примите соглашение!");
+            }
+        }
+
+        // ЛОГИКА ПЛЕЕРА
         const songs = [
             { name: "Vibe Track 1", artist: "Artist 1", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" },
             { name: "Vibe Track 2", artist: "Artist 2", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" },
@@ -93,45 +229,20 @@
         let current = 0;
         const audio = document.getElementById('audio');
         const playBtn = document.getElementById('playBtn');
-        const title = document.getElementById('title');
-        const artist = document.getElementById('artist');
-        const card = document.getElementById('card');
 
         function loadSong() {
-            title.innerText = songs[current].name;
-            artist.innerText = songs[current].artist;
+            document.getElementById('song-title').innerText = songs[current].name;
+            document.getElementById('song-artist').innerText = songs[current].artist;
             audio.src = songs[current].url;
         }
 
         function togglePlay() {
-            if (audio.paused) { 
-                audio.play(); 
-                playBtn.innerText = "⏸"; 
-                card.classList.add('playing');
-            } else { 
-                audio.pause(); 
-                playBtn.innerText = "▶️"; 
-                card.classList.remove('playing');
-            }
+            if (audio.paused) { audio.play(); playBtn.innerText = "⏸"; } 
+            else { audio.pause(); playBtn.innerText = "▶️"; }
         }
 
-        function next() { 
-            current = (current + 1) % songs.length; 
-            loadSong(); 
-            audio.play(); 
-            playBtn.innerText = "⏸"; 
-            card.classList.add('playing');
-        }
-
-        function prev() { 
-            current = (current - 1 + songs.length) % songs.length; 
-            loadSong(); 
-            audio.play(); 
-            playBtn.innerText = "⏸"; 
-            card.classList.add('playing');
-        }
-
-        loadSong();
+        function next() { current = (current + 1) % songs.length; loadSong(); audio.play(); playBtn.innerText = "⏸"; }
+        function prev() { current = (current - 1 + songs.length) % songs.length; loadSong(); audio.play(); playBtn.innerText = "⏸"; }
     </script>
 </body>
 </html>
